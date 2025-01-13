@@ -4,6 +4,10 @@ export default {
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
   	extend: {
+			fontFamily: {
+				'josefins': ['Josefin Sans', 'sans-serif'],
+				'noto': ['Noto Sans', 'sans-serif'],
+			},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
