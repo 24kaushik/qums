@@ -31,7 +31,7 @@ export default function LoginPage() {
           <br />
           Don’t worry, this ERP is 100% secure—unlike your dating history. <img className="inline-block h-6 align-middle relative bottom-px" src={BrokenHeartEmoji} alt="Broken Heart Emoji" />
           <br /> <br />
-          No betrayal, no ghosting, just a rock-solid connection sending your data directly to the official college server and nowhere else. The code’s open-source on <a href="https://github.com/24kaushik/qums" className="text-blue-600 underline">Github</a>, so you can read it line by line, just like those old texts you still obsess over. But hey, maybe this time something will actually work out for you. Log in and see. <img className="inline-block h-6 align-middle relative bottom-px" src={WinkEmoji} alt="Wink Emoji" />
+          No betrayal, no ghosting, just proxying your data directly to the official college server. The code’s open-source on <a href="https://github.com/24kaushik/qums" className="text-blue-600 underline">Github</a>, so you can read it line by line, just like those old texts you still obsess over. But hey, maybe this time something will actually work out for you. Log in and see. <img className="inline-block h-6 align-middle relative bottom-px" src={WinkEmoji} alt="Wink Emoji" />
         </div>
       </div>
     </div>
