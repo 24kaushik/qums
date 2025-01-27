@@ -8,6 +8,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
+  // States, Variables, and Refs
   const [formRefreshToken, setFormRefreshToken] = useState("");
   const [loading, setLoading] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -16,7 +17,7 @@ export function LoginForm({
   useEffect(() => {
     // Getting cookies and formRefreshToken
     (async () => {
-      const data = await fetch("http://localhost:8080/api/", {
+      const data = await fetch("http://172.20.10.13:8080/api/", {
         method: "GET",
         credentials: "include",
       });
@@ -46,7 +47,7 @@ export function LoginForm({
   ) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/api/Account/${endpoint}`,
+        `http://172.20.10.13:8080/api/Account/${endpoint}`,
         {
           method: "POST",
           credentials: "include", // Ensures cookies are sent with the request
@@ -65,7 +66,7 @@ export function LoginForm({
     }
   };
   useEffect(() => {
-    if(formRefreshToken){
+    if(formRefreshToken!==""){
       getCaptcha("showcaptchaImage");
     }
   }, [formRefreshToken]);
@@ -107,7 +108,7 @@ export function LoginForm({
     formData.append("checkOnline", "0");
 
     try {
-      const response = await fetch("http://localhost:8080/api/", {
+      const response = await fetch("http://172.20.10.13:8080/api/", {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -124,7 +125,7 @@ export function LoginForm({
       }
       // TESTING!!, REMOVE LATER
       if (response.type === "opaqueredirect" && response.status == 0) {
-        fetch("http://localhost:8080/api/Account/GetStudentDetail", {
+        fetch("http://172.20.10.13:8080/api/Account/GetStudentDetail", {
           method: "POST",
           credentials: "include",
         })
@@ -133,7 +134,9 @@ export function LoginForm({
             return data;
           })
           .then((data) => {
-            console.log(JSON.parse(data.state));
+            const state = JSON.parse(data.state);
+            console.log(state);
+            alert(state[0]?.StudentName);
           });
       }
     } catch (error) {

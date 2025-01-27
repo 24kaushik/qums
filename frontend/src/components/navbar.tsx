@@ -11,6 +11,7 @@ const Navbar = () => {
       </div>
       <div className="h-10 w-10 rounded-full bg-slate-500">
         {/* Image Placeholder */}
+        {/* Link to /profile */}
       </div>
     </div>
   )
