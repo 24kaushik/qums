@@ -17,7 +17,7 @@ export function LoginForm({
   useEffect(() => {
     // Getting cookies and formRefreshToken
     (async () => {
-      const data = await fetch("http://172.20.10.13:8080/api/", {
+      const data = await fetch(`${import.meta.env.VITE_HOST}/api/`, {
         method: "GET",
         credentials: "include",
       });
@@ -47,7 +47,7 @@ export function LoginForm({
   ) => {
     try {
       const response = await fetch(
-        `http://172.20.10.13:8080/api/Account/${endpoint}`,
+        `${import.meta.env.VITE_HOST}/api/Account/${endpoint}`,
         {
           method: "POST",
           credentials: "include", // Ensures cookies are sent with the request
@@ -108,7 +108,7 @@ export function LoginForm({
     formData.append("checkOnline", "0");
 
     try {
-      const response = await fetch("http://172.20.10.13:8080/api/", {
+      const response = await fetch(`${import.meta.env.VITE_HOST}/api/`, {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -125,7 +125,7 @@ export function LoginForm({
       }
       // TESTING!!, REMOVE LATER
       if (response.type === "opaqueredirect" && response.status == 0) {
-        fetch("http://172.20.10.13:8080/api/Account/GetStudentDetail", {
+        fetch(`${import.meta.env.VITE_HOST}/api/Account/GetStudentDetail`, {
           method: "POST",
           credentials: "include",
         })

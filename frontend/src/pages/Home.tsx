@@ -35,7 +35,14 @@ const Home = () => {
         {/* Semester wise attendance */}
         <SemWiseAtt />
 
-        
+        {/* Exam Result */}
+        <ExamResult />
+
+        {/*Circulars*/}
+        <Circulars />
+
+        {/* This Erp Notices */}
+        <Notices />
       </div>
     </div>
   );
@@ -209,7 +216,7 @@ const MonthlyClassInfo = () => {
       <h4 className="text-2xl font-josefins py-2 font-semibold">
         Monthly Class schedule
       </h4>
-      <Combobox setSelected={setMonth} />
+      <Combobox className="mb-5" setSelected={setMonth} />
       <div className="my-2 mx-3 max-w-[100%]">
         <Table className="">
           <TableHeader>
@@ -311,4 +318,124 @@ const SemWiseAtt = () => {
     </div>
   );
 };
+
+const ExamResult = () => {
+  return (
+    <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)] ">
+      <h4 className="text-2xl font-josefins py-2 font-semibold">Exam Result</h4>
+      <div className="my-2 mb-5 mx-3 max-w-[100%]">
+        <Table className="">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-center border-r">Semester</TableHead>
+              <TableHead className="text-center border-x">SGPA</TableHead>
+              <TableHead className="text-center border-x">Topper</TableHead>
+              <TableHead className="text-center border-x">Average</TableHead>
+              <TableHead className="text-center border-x">
+                Back Papers
+              </TableHead>
+              <TableHead className="text-center border-x">
+                View Details
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell className="font-medium">1</TableCell>
+              <TableCell className="border">8.97</TableCell>
+              <TableCell className="border">9.87</TableCell>
+              <TableCell className="border">7.89</TableCell>
+              <TableCell className="border">0</TableCell>
+              <TableCell className="border text-blue-500 underline">
+                View
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium">2</TableCell>
+              <TableCell className="border">8.62</TableCell>
+              <TableCell className="border">9.72</TableCell>
+              <TableCell className="border">7.19</TableCell>
+              <TableCell className="border">0</TableCell>
+              <TableCell className="border text-blue-500 underline">
+                View
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const Circulars = () => {
+  return (
+    <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)] ">
+      <h4 className="text-2xl font-josefins py-2 font-semibold">Circulars</h4>
+      <div className="my-2 mb-5 mx-3 max-w-[100%]">
+        <Table className="">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-center border-r">Circular</TableHead>
+              <TableHead className="text-center border-x">Date</TableHead>
+              <TableHead className="text-center border-x">By</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell className="min-w-[16rem] text-left">
+                Notice for Students Regarding Poster Making, Essay Writing and
+                Speech Competition on Constitution Day.
+              </TableCell>
+              <TableCell className="border">22/01/2025</TableCell>
+              <TableCell className="border">Kaushik Sarkar</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="min-w-[16rem] text-left">
+                Notice for Students Regarding Poster Making, Essay Writing and
+                Speech Competition on Constitution Day.
+              </TableCell>
+              <TableCell className="border">22/01/2025</TableCell>
+              <TableCell className="border">Kaushik Sarkar</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+const Notices = () => {
+  return (
+    <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)] ">
+      <h4 className="text-2xl font-josefins py-2 font-semibold">This Erp's Notices</h4>
+      <div className="my-2 mb-5 mx-3 max-w-[100%]">
+        <Table className="">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-center border-r">Notices</TableHead>
+              <TableHead className="text-center border-x">Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell className="min-w-[16rem] text-left">
+                Notice for Students Regarding Poster Making, Essay Writing and
+                Speech Competition on Constitution Day.
+              </TableCell>
+              <TableCell className="border">22/01/2025</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="min-w-[16rem] text-left">
+                Notice for Students Regarding Poster Making, Essay Writing and
+                Speech Competition on Constitution Day.
+              </TableCell>
+              <TableCell className="border">22/01/2025</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
 export default Home;
