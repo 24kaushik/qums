@@ -1,8 +1,9 @@
 const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
+require("dotenv").config();
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://172.20.10.13:5173"], // Frontend's origins
+  origin: process.env.FRONTEND.split(","), // Frontend's origins
   credentials: true,
 };
 
