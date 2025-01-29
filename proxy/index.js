@@ -17,18 +17,27 @@ app.use(
     target: "https://qums.quantumuniversity.edu.in",
     changeOrigin: true,
     cookieDomainRewrite: "", // Rewrite domain for compatibility
-    onProxyReq: (proxyReq, req) => {
-      // Forward cookies from browser to college server
-      if (req.headers.cookie) {
-        proxyReq.setHeader("Cookie", req.headers.cookie);
-      }
-    },
-    onProxyRes: (proxyRes, req, res) => {
-      // Forward Set-Cookie headers from college server to browser
-      const proxyCookies = proxyRes.headers["set-cookie"];
-      if (proxyCookies) {
-        res.setHeader("set-cookie", proxyCookies);
-      }
+    on: {
+      proxyReq: (proxyReq, req) => {
+        // Forward cookies from browser to college server
+        if (req.headers.cookie) {
+          proxyReq.setHeader("Cookie", req.headers.cookie);
+        }
+      },
+      proxyRes: (proxyRes, req, res) => {
+        // Forward Set-Cookie headers from college server to browser
+        let cookies = proxyRes.headers["set-cookie"];
+        if (cookies) {
+          cookies = cookies.map((cookie) => {
+            if(cookie.includes("SameSite=Lax")){
+              return cookie.replace("SameSite=Lax", "SameSite=None; Secure");
+            } else {
+              return cookie.replace("HttpOnly", "HttpOnly; SameSite=None; Secure");
+            }
+          });
+        }
+        proxyRes.headers["set-cookie"] = cookies;
+      },
     },
   })
 );
