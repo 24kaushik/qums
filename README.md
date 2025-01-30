@@ -75,5 +75,5 @@ For inquiries, support, or collaboration, reach out at: **hi@kaushiksarkar.me**
 
 ---
 
-Made by [Your Name]
+Made with ❤️ by Kaushik Sarkar
 
