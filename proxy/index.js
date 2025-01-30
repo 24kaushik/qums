@@ -2,6 +2,7 @@ const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
 require("dotenv").config();
+
 const corsOptions = {
   origin: process.env.FRONTEND.split(","), // Frontend's origins
   credentials: true,
@@ -26,17 +27,24 @@ app.use(
       },
       proxyRes: (proxyRes, req, res) => {
         // Forward Set-Cookie headers from college server to browser
-        let cookies = proxyRes.headers["set-cookie"];
-        if (cookies) {
-          cookies = cookies.map((cookie) => {
-            if(cookie.includes("SameSite=Lax")){
-              return cookie.replace("SameSite=Lax", "SameSite=None; Secure");
-            } else {
-              return cookie.replace("HttpOnly", "HttpOnly; SameSite=None; Secure");
-            }
-          });
+        // only in production mode because secure flag requires cookie to be sent over https connection.
+        // doing this helps to run it locally for development without https. make sure to access the frontend with its local ip and not "localhost".
+        if (process.env.MODE === "PROD" || process.env.MODE === "PRODUCTION") {
+          let cookies = proxyRes.headers["set-cookie"];
+          if (cookies) {
+            cookies = cookies.map((cookie) => {
+              if (cookie.includes("SameSite=Lax")) {
+                return cookie.replace("SameSite=Lax", "SameSite=None; Secure");
+              } else {
+                return cookie.replace(
+                  "HttpOnly",
+                  "HttpOnly; SameSite=None; Secure"
+                );
+              }
+            });
+          }
+          proxyRes.headers["set-cookie"] = cookies;
         }
-        proxyRes.headers["set-cookie"] = cookies;
       },
     },
   })
@@ -44,5 +52,5 @@ app.use(
 
 const PORT = 8080;
 app.listen(PORT, () =>
-  console.log(`Proxy running on http://localhost:${PORT}`)
+  console.log(`Proxy running on port ${PORT}`)
 );
