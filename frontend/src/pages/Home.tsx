@@ -11,76 +11,102 @@ import {
 import { Combobox } from "@/components/combo-box";
 
 const Home = () => {
-  return (
-    <div className="pt-14 bg-gray-50">
-      <Hero
-        avatar={
-          "https://i.pinimg.com/736x/a5/f8/a6/a5f8a6d6c02976d90365c20c3cfb8a9c.jpg"
+  const [heroProps, setHeroProps] = useState({});
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check if user is logged in.
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_HOST}/api/Account/GetStudentDetail`,
+          {
+            credentials: "include",
+            method: "POST",
+          }
+        );
+        if (res.status === 200) {
+          const data = await res.json();
+          if (data.state == "[]") {
+            throw new Error("Not authorized");
+          }
+          setIsLoggedIn(true);
+          setHeroProps(JSON.parse(data.state)[0]);
+        } else {
+          throw new Error("Not authorized");
         }
-        coverImage={QULong}
-        fullName="Kaushik Sarkar"
-        username="24030389"
-      />
+      } catch (error) {
+        alert("You are not logged in. Please login to continue.");
+        window.location.href = "/";
+      }
+    })();
+  }, []);
 
-      {/* Attendance CGPA Fee */}
-      <BasicInfo />
+  return (
+    <>
+      {isLoggedIn && (
+        <div className="pt-14 bg-gray-50">
+          {/* Banner and profile pic */}
+          <Hero data={heroProps} />
 
-      <div className="flex flex-wrap">
-        {/* Today's Class Info */}
-        <ClassInfo />
+          {/* Attendance CGPA Fee */}
+          <BasicInfo />
 
-        {/* Monthly Classes Info */}
-        <MonthlyClassInfo />
+          <div className="flex flex-wrap">
+            {/* Today's Class Info */}
+            <ClassInfo />
 
-        {/* Semester wise attendance */}
-        <SemWiseAtt />
+            {/* Monthly Classes Info */}
+            <MonthlyClassInfo />
 
-        {/* Exam Result */}
-        <ExamResult />
+            {/* Semester wise attendance */}
+            <SemWiseAtt />
 
-        {/*Circulars*/}
-        <Circulars />
+            {/* Exam Result */}
+            <ExamResult />
 
-        {/* This Erp Notices */}
-        <Notices />
-      </div>
-    </div>
+            {/*Circulars*/}
+            <Circulars />
+
+            {/* This Erp Notices */}
+            <Notices />
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
-interface HeroProps {
-  avatar: string;
-  coverImage: string;
-  fullName: string;
-  username: string;
-}
-const Hero = ({ avatar, coverImage, fullName, username }: HeroProps) => {
+const Hero = ({ data }: { data: any }) => {
   return (
     <div className="pb-2 mb-4 shadow-md bg-white">
       <div className="bg-violet-400 aspect-[1546/423] sm:aspect-[1855/423] md:aspect-[3500/423] border-b-4 border-white">
-        <img className="h-full w-full object-cover" src={coverImage} alt="" />
+        <img className="h-full w-full object-cover" src={QULong} alt="" />
       </div>
       <div className="h-14 relative">
         <img
-          src={avatar}
+          src={`data:image/png;base64,${data.Photo}`}
           alt="avatar"
-          className="h-[180%] aspect-square shadow-lg rounded-full border-4 border-white z-10 absolute bottom-2 left-1/2 -translate-x-1/2"
+          className="h-[180%] aspect-square shadow-lg rounded-full border-4 border-white z-10 absolute bottom-2 left-1/2 -translate-x-1/2 scale-125"
         />
       </div>
-      <div className="relative z-10">
+      <div className="relative z-10 mt-4">
         <h1 className="text-center leading-6 font-josefins text-3xl md:text-4xl -mb-1 ">
-          {fullName}
+          {data.StudentName}
         </h1>
-        <h4 className="text-center text-gray-600 mt-1">{username}</h4>
+        <h4 className="text-center text-gray-600 mt-1">
+          Q.Id: {data.StudentID}&nbsp;&nbsp; &#8226; &nbsp;&nbsp; Roll. No:{" "}
+          {data.PRollNo}
+        </h4>
         <div className="text-center text-gray-600 ">
-          Bachelor of Technology
+          {data.Course}
           <br />
-          Computer Science and Engineering
+          {data.Branch}
         </div>
         <div className="text-center text-gray-600 ">
-          <span>Section: A</span>
+          <span>Section: {data.Section}</span>
           &nbsp;&nbsp; &#8226; &nbsp;&nbsp;
-          <span>Set: B</span>
+          <span>Set: {data.SetAssign}</span>
         </div>
       </div>
     </div>
@@ -407,7 +433,9 @@ const Circulars = () => {
 const Notices = () => {
   return (
     <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)] ">
-      <h4 className="text-2xl font-josefins py-2 font-semibold">This Erp's Notices</h4>
+      <h4 className="text-2xl font-josefins py-2 font-semibold">
+        This Erp's Notices
+      </h4>
       <div className="my-2 mb-5 mx-3 max-w-[100%]">
         <Table className="">
           <TableHeader>

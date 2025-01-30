@@ -10,9 +10,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       {/* Show Navbar, footer on all pages except login */}
-      {location.pathname !== "/login" && <Navbar />}
+      {location.pathname !== "/" && <Navbar />}
       {children}
-      {location.pathname !== "/login" && <Footer />}
+      {location.pathname !== "/" && <Footer />}
     </>
   );
 }
@@ -22,8 +22,8 @@ export default function App() {
     <BrowserRouter>
       <AppLayout>
         <Routes>
-          <Route path="/" element={<Home/>} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/home" element={<Home/>} />
+          <Route path="/" element={<Login />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>
