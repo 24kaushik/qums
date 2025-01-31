@@ -9,10 +9,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Combobox } from "@/components/combo-box";
+import Loader from "@/components/loader";
+import { useReg } from "@/context/RegContext";
 
 const Home = () => {
   const [heroProps, setHeroProps] = useState({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { setRegId } = useReg();
 
   // Check if user is logged in.
   useEffect(() => {
@@ -31,7 +34,9 @@ const Home = () => {
             throw new Error("Not authorized");
           }
           setIsLoggedIn(true);
-          setHeroProps(JSON.parse(data.state)[0]);
+          const state = JSON.parse(data.state)[0];
+          setHeroProps(state);
+          setRegId(state.RegID);
         } else {
           throw new Error("Not authorized");
         }
@@ -44,7 +49,7 @@ const Home = () => {
 
   return (
     <>
-      {isLoggedIn && (
+      {isLoggedIn ? (
         <div className="pt-14 bg-gray-50">
           {/* Banner and profile pic */}
           <Hero data={heroProps} />
@@ -72,6 +77,8 @@ const Home = () => {
             <Notices />
           </div>
         </div>
+      ) : (
+        <Loader />
       )}
     </>
   );
@@ -98,12 +105,14 @@ const Hero = ({ data }: { data: any }) => {
           Q.Id: {data.StudentID}&nbsp;&nbsp; &#8226; &nbsp;&nbsp; Roll. No:{" "}
           {data.PRollNo}
         </h4>
-        <div className="text-center text-gray-600 ">
+        <div className="text-center text-gray-600 my-1">
           {data.Course}
           <br />
           {data.Branch}
         </div>
-        <div className="text-center text-gray-600 ">
+        <div className="text-center text-gray-600">
+          <span>Semester: {data.YearSem}</span>
+          &nbsp;&nbsp; &#8226; &nbsp;&nbsp;
           <span>Section: {data.Section}</span>
           &nbsp;&nbsp; &#8226; &nbsp;&nbsp;
           <span>Set: {data.SetAssign}</span>
@@ -114,17 +123,61 @@ const Hero = ({ data }: { data: any }) => {
 };
 
 const BasicInfo = () => {
+  const { regId } = useReg();
+  const [basicData, setBasicData] = useState<{
+    attendance: string | undefined;
+    cgpa: string | undefined;
+    dues: string | undefined;
+    paid: string | undefined;
+  }>({
+    attendance: undefined,
+    cgpa: undefined,
+    dues: undefined,
+    paid: undefined,
+  });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const formdata = new FormData();
+        formdata.append("RegID", `${regId}`);
+        const response = await fetch(
+          `${
+            import.meta.env.VITE_HOST
+          }/api/Web_StudentAcademic/GetStudentTileData`,
+          {
+            credentials: "include",
+            method: "POST",
+            body: formdata,
+          }
+        );
+        const data = await response.json();
+        if (data.state != "[]") {
+          const state = JSON.parse(data.state)[0];
+          setBasicData({
+            attendance: state.AttendPer,
+            cgpa: state.CGPA,
+            dues: state.DueAmount,
+            paid: state.CreditAmount,
+          });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, []);
+
   return (
     <div className="flex flex-wrap px-3 text-center">
       <div className="h-28 my-1 shadow-md bg-white mr-1 w-[calc(50%-0.25rem)] border-t-4 border-green-500 md:w-[calc(25%-0.25rem)]">
         <div className="text-xl mt-2 font-josefins font-semibold">
           Attendance (%)
         </div>
-        <div className="mt-3 text-3xl">98.67</div>
+        <div className="mt-3 text-3xl">{basicData.attendance}</div>
       </div>
       <div className="h-28 my-1 shadow-md bg-white ml-1 w-[calc(50%-0.25rem)] border-t-4 border-purple-500 md:mr-1 md:w-[calc(25%-0.25rem)]">
         <div className="text-xl mt-2 font-josefins font-semibold">CGPA</div>
-        <div className="mt-3 text-3xl">9.5/10</div>
+        <div className="mt-3 text-3xl">{basicData.cgpa}/10</div>
       </div>
       <div className="h-28 my-1 shadow-md bg-white w-full border-t-4 border-indigo-500 md:w-[calc(50%-0.50rem)] md:ml-1">
         <div className="text-xl mt-2 font-josefins font-semibold">
@@ -132,8 +185,13 @@ const BasicInfo = () => {
           <span className="text-red-500">To Pay</span>)
         </div>
         <div className="mt-3 text-3xl">
-          147500 / <span className="text-green-600">147500</span> /{" "}
-          <span className="text-red-500">0</span>
+          {basicData.dues} /{" "}
+          <span className="text-green-600">{basicData.paid}</span> /{" "}
+          <span className="text-red-500">
+            {basicData.dues && basicData.paid
+              ? +basicData.dues - +basicData.paid
+              : 0}
+          </span>
         </div>
       </div>
     </div>

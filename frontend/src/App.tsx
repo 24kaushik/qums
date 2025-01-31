@@ -3,6 +3,7 @@ import Login from "./pages/Login.tsx";
 import Navbar from "@/components/navbar.tsx";
 import Home from "@/pages/Home.tsx";
 import Footer from "./components/footer.tsx";
+import RegProvider from "./context/RegContext.tsx";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -20,12 +21,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppLayout>
-        <Routes>
-          <Route path="/home" element={<Home/>} />
-          <Route path="/" element={<Login />} />
-        </Routes>
-      </AppLayout>
+      <RegProvider>
+        <AppLayout>
+          <Routes>
+            <Route path="/home" element={<Home />} />
+            <Route path="/" element={<Login />} />
+          </Routes>
+        </AppLayout>
+      </RegProvider>
     </BrowserRouter>
   );
 }
