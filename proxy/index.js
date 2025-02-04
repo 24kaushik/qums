@@ -12,6 +12,10 @@ const app = express();
 
 app.use(cors(corsOptions));
 
+app.get("/", (_, res) => {
+  res.send("Proxy running");
+});
+
 app.use(
   "/api",
   createProxyMiddleware({
