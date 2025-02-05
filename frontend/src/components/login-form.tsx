@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function LoginForm({
   className,
@@ -12,6 +13,7 @@ export function LoginForm({
   const [formRefreshToken, setFormRefreshToken] = useState("");
   const [loading, setLoading] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const navigate = useNavigate();
 
   // FormRefreshToken
   useEffect(() => {
@@ -125,19 +127,7 @@ export function LoginForm({
       }
       // TESTING!!, REMOVE LATER
       if (response.type === "opaqueredirect" && response.status == 0) {
-        fetch(`${import.meta.env.VITE_HOST}/api/Account/GetStudentDetail`, {
-          method: "POST",
-          credentials: "include",
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            return data;
-          })
-          .then((data) => {
-            const state = JSON.parse(data.state);
-            console.log(state);
-            alert(state[0]?.StudentName);
-          });
+        navigate("/home");
       }
     } catch (error) {
       console.error("Error logging in:", error);
