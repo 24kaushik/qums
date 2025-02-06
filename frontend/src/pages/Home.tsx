@@ -65,7 +65,7 @@ const Home = () => {
             <MonthlyClassInfo />
 
             {/* Semester wise attendance */}
-            <SemWiseAtt />
+            <SemWiseAtt data={heroProps} />
 
             {/* Exam Result */}
             <ExamResult />
@@ -331,15 +331,10 @@ const MonthlyClassInfo = () => {
     }
   }, [month]);
 
-  // useEffect(() => {
-  //   console.log(attendanceData);
-  //   console.log(col);
-  // }, [attendanceData, col]);
-
   return (
     <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)]">
       <h4 className="text-2xl font-josefins py-2 font-semibold">
-        Monthly Class schedule
+        Monthly Class Attendance
       </h4>
       <Combobox className="mb-5" setSelected={setMonth} listData={months} />
       <div className="my-2 mx-3 overflow-auto">
@@ -372,14 +367,6 @@ const MonthlyClassInfo = () => {
                 ))}
               </TableRow>
             ))}
-            {/* <TableRow>
-              <TableCell className="font-medium">
-                Data Structure & Algorithm
-              </TableCell>
-              <TableCell className="border">A</TableCell>
-              <TableCell className="border">P</TableCell>
-              <TableCell className="border">N.M.</TableCell>
-            </TableRow> */}
           </TableBody>
         </Table>
       </div>
@@ -387,65 +374,104 @@ const MonthlyClassInfo = () => {
   );
 };
 
-const SemWiseAtt = () => {
+const SemWiseAtt = ({ data }: { data: any }) => {
+  const [semData, setSemData] = useState<any[]>([]);
+  const [sems, setSems] = useState<{ value: string; label: string }[]>([]);
+  const [sem, setSem] = useState("");
+  const { regId } = useReg();
+
+  useEffect(() => {
+    if (data.YearSem) {
+      for (let i = 1; i <= data.YearSem; i++) {
+        setSems((prev) => [...prev, { value: String(i), label: String(i) }]);
+      }
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (sem) {
+      const formdata = new FormData();
+      formdata.append("RegID", `${regId}`);
+      formdata.append("YearSem", sem);
+      fetch(
+        `${
+          import.meta.env.VITE_HOST
+        }/api/Web_StudentAcademic/GetYearSemWiseAttendance`,
+        {
+          method: "post",
+          credentials: "include",
+          body: formdata,
+        }
+      )
+        .then((res) => (res.status === 200 ? res.json() : undefined))
+        .then((data) => {
+          if (data) {
+            const attData = JSON.parse(data.data);
+            setSemData(attData);
+            console.log(attData);
+          }
+        });
+    }
+  }, [sem]);
+
   return (
     <div className="text-center m-3 md:ml-3 md:mr-0 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-.75rem)] ">
       <h4 className="text-2xl font-josefins py-2 font-semibold">
         Semester wise Attendance
       </h4>
-      <div className="my-2 mx-3 max-w-[100%]">
-        <Table className="">
+      <Combobox className="mb-2" setSelected={setSem} listData={sems} />
+
+      <div className="mx-10 flex flex-wrap justify-evenly text-sm">
+        <div className="my-2 flex items-center">
+          <div className="bg-red-300 h-4 w-8 border border-black"></div>
+          <div>&nbsp;&nbsp;- Below 75%</div>
+        </div>
+      </div>
+
+      <div className="my-2 mx-3">
+        <Table className="max-h-96">
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center border-r">Code</TableHead>
-              <TableHead className="text-center border-r">Subject</TableHead>
+              <TableHead className="text-center border-r border-b">
+                Code
+              </TableHead>
+              <TableHead className="text-center border-r border-b">
+                Subject
+              </TableHead>
               <TableHead className="text-center border-r">Percentage</TableHead>
-              <TableHead className="text-center border-r">
+              <TableHead className="text-center border-r border-b">
                 Total/Present/Absent
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
+            {semData.map((row, i) => (
+              <TableRow
+                key={i}
+                className={row.Percentage < 75 ? "bg-red-300" : ""}
+              >
+                <TableCell className="font-semibold border-r border-b">
+                  {row.SubjectCode}
+                </TableCell>
+                <TableCell className="border-r border-b">
+                  {row.Subject}
+                </TableCell>
+                <TableCell className="border-r border-b">
+                  {row.Percentage}
+                </TableCell>
+                <TableCell className="border-r border-b">
+                  {row.TotalLecture} / {row.TotalPresent} / {row.TotalAbsent}
+                </TableCell>
+              </TableRow>
+            ))}
+            {/* <TableRow>
               <TableCell className="font-medium">CS31101</TableCell>
               <TableCell className="border">
                 Basics of Computer and C Programming
               </TableCell>
               <TableCell className="border">90</TableCell>
               <TableCell className="border">100/90/10</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">CS31101</TableCell>
-              <TableCell className="border">
-                Basics of Computer and C Programming
-              </TableCell>
-              <TableCell className="border">90</TableCell>
-              <TableCell className="border">100/90/10</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">CS31101</TableCell>
-              <TableCell className="border">
-                Basics of Computer and C Programming
-              </TableCell>
-              <TableCell className="border">90</TableCell>
-              <TableCell className="border">100/90/10</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">CS31101</TableCell>
-              <TableCell className="border">
-                Basics of Computer and C Programming
-              </TableCell>
-              <TableCell className="border">90</TableCell>
-              <TableCell className="border">100/90/10</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">CS31101</TableCell>
-              <TableCell className="border">
-                Basics of Computer and C Programming
-              </TableCell>
-              <TableCell className="border">90</TableCell>
-              <TableCell className="border">100/90/10</TableCell>
-            </TableRow>
+            </TableRow> */}
           </TableBody>
         </Table>
       </div>
