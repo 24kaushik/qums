@@ -360,9 +360,9 @@ const MonthlyClassInfo = () => {
                   <TableCell
                     key={e}
                     className={`border ${
-                      row[e] == "A"
+                      row[e] == "A" || row[e] == "A,A"
                         ? "bg-red-300"
-                        : row[e] == "P"
+                        : row[e] == "P" || row[e] == "P,P"
                         ? "bg-green-300"
                         : ""
                     }`}
