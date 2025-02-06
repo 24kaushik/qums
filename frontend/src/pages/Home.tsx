@@ -288,48 +288,98 @@ const ClassInfo = () => {
 
 const MonthlyClassInfo = () => {
   const [month, setMonth] = useState("");
+  const { regId } = useReg();
+  const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [col, setCol] = useState<string[]>([]);
+
+  const months = [
+    { value: "1", label: "January" },
+    { value: "2", label: "February" },
+    { value: "3", label: "March" },
+    { value: "4", label: "April" },
+    { value: "5", label: "May" },
+    { value: "6", label: "June" },
+    { value: "7", label: "July" },
+    { value: "8", label: "August" },
+    { value: "9", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
 
   useEffect(() => {
     if (month) {
-      console.log(month);
+      const formdata = new FormData();
+      formdata.append("RegID", `${regId}`);
+      formdata.append("Month", month);
+      fetch(
+        `${import.meta.env.VITE_HOST}/api/Web_StudentAcademic/GetMonthRegister`,
+        {
+          method: "post",
+          credentials: "include",
+          body: formdata,
+        }
+      )
+        .then((res) => (res.status === 200 ? res.json() : undefined))
+        .then((data) => {
+          if (data) {
+            const state = JSON.parse(data.state);
+            setAttendanceData(state);
+            setCol(data.col?.split(","));
+          }
+        });
     }
   }, [month]);
 
+  // useEffect(() => {
+  //   console.log(attendanceData);
+  //   console.log(col);
+  // }, [attendanceData, col]);
+
   return (
-    <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)] ">
+    <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)]">
       <h4 className="text-2xl font-josefins py-2 font-semibold">
         Monthly Class schedule
       </h4>
-      <Combobox className="mb-5" setSelected={setMonth} />
-      <div className="my-2 mx-3 max-w-[100%]">
-        <Table className="">
+      <Combobox className="mb-5" setSelected={setMonth} listData={months} />
+      <div className="my-2 mx-3 overflow-auto">
+        <Table className="max-h-96">
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center border-r">Subject</TableHead>
-              {[...Array(30)].map((_, i) => (
-                <TableHead key={i} className="text-center border-x">
-                  {i + 1}
+              {col.map((e) => (
+                <TableHead key={e} className="text-center border-x">
+                  {e}
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
+            {attendanceData.map((row, i) => (
+              <TableRow key={i}>
+                {col.map((e) => (
+                  <TableCell
+                    key={e}
+                    className={`border ${
+                      row[e] == "A"
+                        ? "bg-red-300"
+                        : row[e] == "P"
+                        ? "bg-green-300"
+                        : ""
+                    }`}
+                  >
+                    {row[e]}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+            {/* <TableRow>
               <TableCell className="font-medium">
                 Data Structure & Algorithm
               </TableCell>
               <TableCell className="border">A</TableCell>
               <TableCell className="border">P</TableCell>
               <TableCell className="border">N.M.</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">
-                Data Structure & Algorithm
-              </TableCell>
-              <TableCell className="border">A</TableCell>
-              <TableCell className="border">P</TableCell>
-              <TableCell className="border">N.M.</TableCell>
-            </TableRow>
+            </TableRow> */}
           </TableBody>
         </Table>
       </div>
