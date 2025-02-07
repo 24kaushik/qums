@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { get } from "http";
 
 export function LoginForm({
   className,
@@ -15,35 +16,6 @@ export function LoginForm({
   const imgRef = useRef<HTMLImageElement | null>(null);
   const navigate = useNavigate();
 
-  // FormRefreshToken
-  useEffect(() => {
-    // Getting cookies and formRefreshToken
-    (async () => {
-      const data = await fetch(`${import.meta.env.VITE_HOST}/api/`, {
-        method: "GET",
-        credentials: "include",
-      });
-      const text = await data.text();
-
-      // Using DOMParser to parse the response
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, "text/html");
-      const token = (
-        doc.querySelector(
-          'input[name="__RequestVerificationToken"]'
-        ) as HTMLInputElement
-      )?.value;
-
-      if (token) {
-        setFormRefreshToken(token);
-        // console.log(token)
-      } else {
-        console.error("Form refresh token not found");
-      }
-    })();
-  }, []);
-
-  // Captcha
   const getCaptcha = async (
     endpoint: "showcaptchaImage" | "showrefreshcaptchaImage"
   ) => {
@@ -67,12 +39,38 @@ export function LoginForm({
       console.error("Error fetching captcha image:", error);
     }
   };
-  useEffect(() => {
-    if(formRefreshToken!==""){
-      getCaptcha("showcaptchaImage");
-    }
-  }, [formRefreshToken]);
 
+  // FormRefreshToken
+  useEffect(() => {
+    // Getting cookies and formRefreshToken
+    fetch(`${import.meta.env.VITE_HOST}/api/`, {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((data) => data.text())
+      .then((text) => {
+        // Using DOMParser to parse the response
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "text/html");
+        const token = (
+          doc.querySelector(
+            'input[name="__RequestVerificationToken"]'
+          ) as HTMLInputElement
+        )?.value;
+  
+        if (token) {
+          setFormRefreshToken(token);
+          getCaptcha("showcaptchaImage");
+          // console.log(token)
+        } else {
+          console.error("Form refresh token not found");
+        }
+      })
+      .catch((error) => console.error("Error fetching form refresh token:", error));
+  }, []);
+  
+
+  // Captcha
   const refreshCaptcha = () => {
     getCaptcha("showrefreshcaptchaImage");
   };
@@ -125,7 +123,7 @@ export function LoginForm({
         alert("The user name or password provided is incorrect.");
         return;
       }
-      // TESTING!!, REMOVE LATER
+
       if (response.type === "opaqueredirect" && response.status == 0) {
         navigate("/home");
       }
