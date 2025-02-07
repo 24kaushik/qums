@@ -16,7 +16,7 @@ To set up and run the project locally, follow these steps:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/qums.git
+git clone https://github.com/24kaushik/qums.git
 cd qums
 ```
 
