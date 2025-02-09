@@ -11,6 +11,7 @@ import {
 import { Combobox } from "@/components/combo-box";
 import Loader from "@/components/loader";
 import { useReg } from "@/context/RegContext";
+import { Button } from "@/components/ui/button";
 
 const Home = () => {
   const [heroProps, setHeroProps] = useState({});
@@ -113,7 +114,7 @@ const Hero = ({ data }: { data: any }) => {
         <div className="text-center text-gray-600">
           <span>Semester: {data.YearSem}</span>
           &nbsp;&nbsp; &#8226; &nbsp;&nbsp;
-          <span>Section: {data.Section}</span>
+          <span>Section: {data.Section.replace("SECTION - ", "")}</span>
           &nbsp;&nbsp; &#8226; &nbsp;&nbsp;
           <span>Set: {data.SetAssign}</span>
         </div>
@@ -287,7 +288,8 @@ const ClassInfo = () => {
 };
 
 const MonthlyClassInfo = () => {
-  const [month, setMonth] = useState("");
+  const currentMonth = String(new Date().getMonth() + 1);
+  const [month, setMonth] = useState(currentMonth);
   const { regId } = useReg();
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [col, setCol] = useState<string[]>([]);
@@ -336,13 +338,21 @@ const MonthlyClassInfo = () => {
       <h4 className="text-2xl font-josefins py-2 font-semibold">
         Monthly Class Attendance
       </h4>
-      <Combobox className="mb-5" setSelected={setMonth} listData={months} />
+      <Combobox
+        className="mb-5"
+        setSelected={setMonth}
+        listData={months}
+        placeholder={month}
+      />
       <div className="my-2 mx-3 overflow-auto">
         <Table className="max-h-96">
           <TableHeader>
             <TableRow>
               {col.map((e) => (
-                <TableHead key={e} className="text-center border-x">
+                <TableHead
+                  key={e}
+                  className="text-center border-r border-b text-xs md:text-sm"
+                >
                   {e}
                 </TableHead>
               ))}
@@ -350,11 +360,11 @@ const MonthlyClassInfo = () => {
           </TableHeader>
           <TableBody>
             {attendanceData.map((row, i) => (
-              <TableRow key={i}>
+              <TableRow key={i} className="hover:">
                 {col.map((e) => (
                   <TableCell
                     key={e}
-                    className={`border ${
+                    className={`border-r border-b whitespace-nowrap px-1 text-xs md:text-sm ${
                       row[e] == "A" || row[e] == "A,A"
                         ? "bg-red-300"
                         : row[e] == "P" || row[e] == "P,P"
@@ -377,7 +387,7 @@ const MonthlyClassInfo = () => {
 const SemWiseAtt = ({ data }: { data: any }) => {
   const [semData, setSemData] = useState<any[]>([]);
   const [sems, setSems] = useState<{ value: string; label: string }[]>([]);
-  const [sem, setSem] = useState("");
+  const [sem, setSem] = useState(data.YearSem as string);
   const { regId } = useReg();
 
   useEffect(() => {
@@ -408,7 +418,6 @@ const SemWiseAtt = ({ data }: { data: any }) => {
           if (data) {
             const attData = JSON.parse(data.data);
             setSemData(attData);
-            console.log(attData);
           }
         });
     }
@@ -419,7 +428,12 @@ const SemWiseAtt = ({ data }: { data: any }) => {
       <h4 className="text-2xl font-josefins py-2 font-semibold">
         Semester wise Attendance
       </h4>
-      <Combobox className="mb-2" setSelected={setSem} listData={sems} />
+      <Combobox
+        className="mb-2"
+        setSelected={setSem}
+        listData={sems}
+        placeholder={sem}
+      />
 
       <div className="mx-10 flex flex-wrap justify-evenly text-sm">
         <div className="my-2 flex items-center">
@@ -528,6 +542,25 @@ const ExamResult = () => {
 };
 
 const Circulars = () => {
+  const [circulars, setCirculars] = useState<object[]>([]);
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_HOST}/api/Web_Teaching/GetCircularDetails`, {
+      credentials: "include",
+      method: "POST",
+    })
+      .then((res) => (res.status === 200 ? res.json() : undefined))
+      .then((data) => {
+        if (data) {
+          const state = JSON.parse(data.state);
+          setCirculars(state.slice(0, 5)); // WHY ARE THEY RETURNING ALL THE CIRCULARS?? Theres like a thousand fucking circulars in the response. Such a waste of bandwidth and processing power.
+          console.log(state.slice(0, 5));
+        }
+      });
+  }, []);
+
+  //TODO: Add Hyperlinks to circulars and take them to pdf view page.
+
   return (
     <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)] ">
       <h4 className="text-2xl font-josefins py-2 font-semibold">Circulars</h4>
@@ -535,31 +568,33 @@ const Circulars = () => {
         <Table className="">
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center border-r">Circular</TableHead>
-              <TableHead className="text-center border-x">Date</TableHead>
-              <TableHead className="text-center border-x">By</TableHead>
+              <TableHead className="text-center border-x border-b">Latest Circulars</TableHead>
+              <TableHead className="text-center border-x border-b">Date</TableHead>
+              <TableHead className="text-center border-x border-b">By</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="min-w-[16rem] text-left">
+            {circulars.map((circular: any, i) => (
+              <TableRow key={i}>
+                <TableCell className="min-w-[16rem] text-left border-b border-x text-blue-600">
+                  {circular.Subject}
+                </TableCell>
+                <TableCell className=" border-b border-x">{circular.DateFrom}</TableCell>
+                <TableCell className=" border-b border-x text-xs">{circular.EmployeeName}</TableCell>
+              </TableRow>
+            ))}
+            {/* <TableRow>
+              <TableCell className="min-w-[16rem] text-left border-b border-x">
                 Notice for Students Regarding Poster Making, Essay Writing and
                 Speech Competition on Constitution Day.
               </TableCell>
-              <TableCell className="border">22/01/2025</TableCell>
-              <TableCell className="border">Kaushik Sarkar</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="min-w-[16rem] text-left">
-                Notice for Students Regarding Poster Making, Essay Writing and
-                Speech Competition on Constitution Day.
-              </TableCell>
-              <TableCell className="border">22/01/2025</TableCell>
-              <TableCell className="border">Kaushik Sarkar</TableCell>
-            </TableRow>
+              <TableCell className=" border-b border-x">22/01/2025</TableCell>
+              <TableCell className=" border-b border-x">Kaushik Sarkar</TableCell>
+            </TableRow> */}
           </TableBody>
         </Table>
       </div>
+      <Button className="mb-5">View all</Button>
     </div>
   );
 };
@@ -574,24 +609,16 @@ const Notices = () => {
         <Table className="">
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center border-r">Notices</TableHead>
+              <TableHead className="text-center border-x">Notices</TableHead>
               <TableHead className="text-center border-x">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell className="min-w-[16rem] text-left">
-                Notice for Students Regarding Poster Making, Essay Writing and
-                Speech Competition on Constitution Day.
+              <TableCell className="min-w-[16rem] text-left border-x border-b">
+                The ERP is still under development. Some features may not work as expected.
               </TableCell>
-              <TableCell className="border">22/01/2025</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="min-w-[16rem] text-left">
-                Notice for Students Regarding Poster Making, Essay Writing and
-                Speech Competition on Constitution Day.
-              </TableCell>
-              <TableCell className="border">22/01/2025</TableCell>
+              <TableCell className="border-x border-b">09/02/2025</TableCell>
             </TableRow>
           </TableBody>
         </Table>

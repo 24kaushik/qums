@@ -26,10 +26,12 @@ export function Combobox({
   setSelected,
   className,
   listData,
+  placeholder,
 }: {
   setSelected: React.Dispatch<React.SetStateAction<string>>;
   className?: React.HTMLAttributes<HTMLDivElement>["className"];
   listData: listDataType[];
+  placeholder: string;
 }) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
@@ -52,7 +54,7 @@ export function Combobox({
           >
             {value
               ? listData.find((data) => data.value === value)?.label
-              : "Select ..."}
+              : placeholder}
             <ChevronsUpDown className="opacity-50" />
           </Button>
         </PopoverTrigger>
