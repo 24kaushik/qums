@@ -236,7 +236,7 @@ const ClassInfo = () => {
   return (
     <div className="text-center m-3 md:ml-3 md:mr-0 shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-.75rem)]">
       <h4 className="text-2xl font-josefins py-2 font-semibold">
-        Today's Class schedule
+        Today's Class schedule (Demo data)
       </h4>
 
       <div className="mx-10 flex flex-wrap justify-between text-sm">
@@ -342,7 +342,7 @@ const MonthlyClassInfo = () => {
         className="mb-5"
         setSelected={setMonth}
         listData={months}
-        placeholder={month}
+        placeholder={currentMonth}
       />
       <div className="my-2 mx-3 overflow-auto">
         <Table className="max-h-96">
@@ -478,14 +478,6 @@ const SemWiseAtt = ({ data }: { data: any }) => {
                 </TableCell>
               </TableRow>
             ))}
-            {/* <TableRow>
-              <TableCell className="font-medium">CS31101</TableCell>
-              <TableCell className="border">
-                Basics of Computer and C Programming
-              </TableCell>
-              <TableCell className="border">90</TableCell>
-              <TableCell className="border">100/90/10</TableCell>
-            </TableRow> */}
           </TableBody>
         </Table>
       </div>
@@ -494,6 +486,39 @@ const SemWiseAtt = ({ data }: { data: any }) => {
 };
 
 const ExamResult = () => {
+  const [examResult, setExamResult] = useState<object[]>([]);
+  const { regId } = useReg();
+
+  useEffect(() => {
+    const formdata = new FormData();
+    formdata.append("RegID", `${regId}`);
+    fetch(
+      `${
+        import.meta.env.VITE_HOST
+      }/api/Web_StudentAcademic/GetStudentExamSummary`,
+      {
+        method: "post",
+        credentials: "include",
+        body: formdata,
+      }
+    )
+      .then((res) => (res.status === 200 ? res.json() : undefined))
+      .then((data) => {
+        if (data) {
+          const result = JSON.parse(data.ExamSummary);
+          setExamResult(result);
+          const t = new FormData();
+          t.append("yearSem", result[0].YearSem);
+          t.append("Regid", `${regId}`);
+          fetch(`${import.meta.env.VITE_HOST}/api/Web_StudentAcademic/FillMarksheet`, {
+            method: "post",
+            credentials: "include",
+            body: t,
+          }).then(res => res.json()).then(data=> {console.log(data)})
+        }
+      });
+  }, []);
+
   return (
     <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)] ">
       <h4 className="text-2xl font-josefins py-2 font-semibold">Exam Result</h4>
@@ -501,7 +526,7 @@ const ExamResult = () => {
         <Table className="">
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center border-r">Semester</TableHead>
+              <TableHead className="text-center border-x">Semester</TableHead>
               <TableHead className="text-center border-x">SGPA</TableHead>
               <TableHead className="text-center border-x">Topper</TableHead>
               <TableHead className="text-center border-x">Average</TableHead>
@@ -514,26 +539,24 @@ const ExamResult = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">1</TableCell>
-              <TableCell className="border">8.97</TableCell>
-              <TableCell className="border">9.87</TableCell>
-              <TableCell className="border">7.89</TableCell>
-              <TableCell className="border">0</TableCell>
-              <TableCell className="border text-blue-500 underline">
-                View
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">2</TableCell>
-              <TableCell className="border">8.62</TableCell>
-              <TableCell className="border">9.72</TableCell>
-              <TableCell className="border">7.19</TableCell>
-              <TableCell className="border">0</TableCell>
-              <TableCell className="border text-blue-500 underline">
-                View
-              </TableCell>
-            </TableRow>
+            {examResult.map((row: any, i: number) => (
+              <TableRow key={i}>
+                <TableCell className="font-medium border-x border-b">
+                  {row.YearSem}
+                </TableCell>
+                <TableCell className=" border-x border-b">{row.SGPA}</TableCell>
+                <TableCell className=" border-x border-b">
+                  {row.Topper}
+                </TableCell>
+                <TableCell className=" border-x border-b">{row.Avrg}</TableCell>
+                <TableCell className=" border-x border-b">
+                  {row.TotalBack}
+                </TableCell>
+                <TableCell className=" border-x border-b text-blue-500 underline">
+                  View
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
@@ -554,7 +577,6 @@ const Circulars = () => {
         if (data) {
           const state = JSON.parse(data.state);
           setCirculars(state.slice(0, 5)); // WHY ARE THEY RETURNING ALL THE CIRCULARS?? Theres like a thousand fucking circulars in the response. Such a waste of bandwidth and processing power.
-          console.log(state.slice(0, 5));
         }
       });
   }, []);
@@ -568,9 +590,15 @@ const Circulars = () => {
         <Table className="">
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center border-x border-b">Latest Circulars</TableHead>
-              <TableHead className="text-center border-x border-b">Date</TableHead>
-              <TableHead className="text-center border-x border-b">By</TableHead>
+              <TableHead className="text-center border-x border-b">
+                Latest Circulars
+              </TableHead>
+              <TableHead className="text-center border-x border-b">
+                Date
+              </TableHead>
+              <TableHead className="text-center border-x border-b">
+                By
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -579,18 +607,14 @@ const Circulars = () => {
                 <TableCell className="min-w-[16rem] text-left border-b border-x text-blue-600">
                   {circular.Subject}
                 </TableCell>
-                <TableCell className=" border-b border-x">{circular.DateFrom}</TableCell>
-                <TableCell className=" border-b border-x text-xs">{circular.EmployeeName}</TableCell>
+                <TableCell className=" border-b border-x">
+                  {circular.DateFrom}
+                </TableCell>
+                <TableCell className=" border-b border-x text-xs">
+                  {circular.EmployeeName}
+                </TableCell>
               </TableRow>
             ))}
-            {/* <TableRow>
-              <TableCell className="min-w-[16rem] text-left border-b border-x">
-                Notice for Students Regarding Poster Making, Essay Writing and
-                Speech Competition on Constitution Day.
-              </TableCell>
-              <TableCell className=" border-b border-x">22/01/2025</TableCell>
-              <TableCell className=" border-b border-x">Kaushik Sarkar</TableCell>
-            </TableRow> */}
           </TableBody>
         </Table>
       </div>
@@ -616,7 +640,8 @@ const Notices = () => {
           <TableBody>
             <TableRow>
               <TableCell className="min-w-[16rem] text-left border-x border-b">
-                The ERP is still under development. Some features may not work as expected.
+                The ERP is still under development. Some features may not work
+                as expected.
               </TableCell>
               <TableCell className="border-x border-b">09/02/2025</TableCell>
             </TableRow>
