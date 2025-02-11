@@ -445,7 +445,7 @@ const SemWiseAtt = ({ data }: { data: any }) => {
       <div className="my-2 mx-3">
         <Table className="max-h-96">
           <TableHeader>
-            <TableRow>
+            <TableRow className="text-xs md:text-sm">
               <TableHead className="text-center border-r border-b">
                 Code
               </TableHead>
@@ -462,7 +462,7 @@ const SemWiseAtt = ({ data }: { data: any }) => {
             {semData.map((row, i) => (
               <TableRow
                 key={i}
-                className={row.Percentage < 75 ? "bg-red-300" : ""}
+                className={`${row.Percentage < 75 ? "bg-red-300" : ""} text-xs md:text-sm`}
               >
                 <TableCell className="font-semibold border-r border-b">
                   {row.SubjectCode}
