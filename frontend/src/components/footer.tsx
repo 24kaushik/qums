@@ -1,6 +1,6 @@
 const Footer = () => {
   return (
-    <footer className="bg-white rounded-lg shadow-[0px_-5px_10px_0_rgb(0_0_0_/_0.05)]  dark:bg-gray-900">
+    <footer className="bg-white rounded-lg shadow-[0px_-5px_10px_0_rgb(0_0_0_/_0.05)]  dark:bg-gray-900 relative z-50">
       <div className="w-full max-w-screen-xl mx-auto p-4 md:py-8">
         <div className="sm:flex sm:items-center sm:justify-between">
           <a href="/" className="flex items-center justify-center mb-4 sm:mb-0">

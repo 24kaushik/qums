@@ -4,6 +4,7 @@ import Navbar from "@/components/navbar.tsx";
 import Home from "@/pages/Home.tsx";
 import Footer from "./components/footer.tsx";
 import RegProvider from "./context/RegContext.tsx";
+import BottomBar from "./components/bottom-bar.tsx";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -13,6 +14,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Show Navbar, footer on all pages except login */}
       {location.pathname !== "/" && <Navbar />}
       {children}
+      {location.pathname !== "/" && <BottomBar />}
       {location.pathname !== "/" && <Footer />}
     </>
   );
