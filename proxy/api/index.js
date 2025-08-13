@@ -1,12 +1,11 @@
 const { createProxyMiddleware } = require("http-proxy-middleware");
 require("dotenv").config();
 
-// This is needed to make http-proxy-middleware work with Vercel
 const proxy = createProxyMiddleware({
   target: "https://qums.quantumuniversity.edu.in",
   changeOrigin: true,
   cookieDomainRewrite: "",
-  selfHandleResponse: true, // Important for Vercel
+  selfHandleResponse: true, // needed for Vercel
   on: {
     proxyReq: (proxyReq, req) => {
       // Forward cookies from browser to college server
@@ -15,69 +14,83 @@ const proxy = createProxyMiddleware({
       }
     },
     proxyRes: (proxyRes, req, res) => {
-      // Handle cookies
-      let cookies = proxyRes.headers["set-cookie"];
-      if (cookies) {
-        cookies = cookies.map((cookie) => {
-          if (cookie.includes("SameSite=Lax")) {
-            return cookie.replace("SameSite=Lax", "SameSite=None; Secure");
-          } else {
-            return cookie.replace(
-              "HttpOnly",
-              "HttpOnly; SameSite=None; Secure"
-            );
-          }
-        });
-        res.setHeader("Set-Cookie", cookies);
+      // Forward Set-Cookie headers from college server to browser
+      // only in production mode because secure flag requires cookie to be sent over https connection.
+      // doing this helps to run it locally for development without https. make sure to access the frontend with its local ip and not "localhost".
+      if (process.env.MODE === "PROD" || process.env.MODE === "PRODUCTION") {
+        let cookies = proxyRes.headers["set-cookie"];
+        if (cookies) {
+          cookies = cookies.map((cookie) => {
+            if (cookie.includes("SameSite=Lax")) {
+              return cookie.replace("SameSite=Lax", "SameSite=None; Secure");
+            } else {
+              return cookie.replace(
+                "HttpOnly",
+                "HttpOnly; SameSite=None; Secure"
+              );
+            }
+          });
+          proxyRes.headers["set-cookie"] = cookies;
+        }
       }
 
-      // Copy all headers from proxy response
-      Object.keys(proxyRes.headers).forEach(key => {
+      // Forward all proxy response headers
+      Object.keys(proxyRes.headers).forEach((key) => {
         res.setHeader(key, proxyRes.headers[key]);
       });
 
-      // Set CORS headers
-      const origins = process.env.FRONTEND ? process.env.FRONTEND.split(",") : ["*"];
+      // CORS handling
+      const origins = process.env.FRONTEND
+        ? process.env.FRONTEND.split(",")
+        : ["*"];
       const origin = req.headers.origin;
       if (origins.includes(origin) || origins.includes("*")) {
         res.setHeader("Access-Control-Allow-Origin", origin);
         res.setHeader("Access-Control-Allow-Credentials", "true");
       }
 
-      // Stream the response back to the client
+      // Send the proxied response
       res.statusCode = proxyRes.statusCode;
       proxyRes.pipe(res);
-    }
-  }
+    },
+  },
 });
 
 module.exports = async (req, res) => {
-  // Set CORS headers for preflight requests
+  // Handle OPTIONS preflight
   if (req.method === "OPTIONS") {
-    const origins = process.env.FRONTEND ? process.env.FRONTEND.split(",") : ["*"];
+    const origins = process.env.FRONTEND
+      ? process.env.FRONTEND.split(",")
+      : ["*"];
     const origin = req.headers.origin;
     if (origins.includes(origin) || origins.includes("*")) {
       res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie");
+      res.setHeader(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PUT, DELETE, OPTIONS"
+      );
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, Cookie"
+      );
       res.setHeader("Access-Control-Allow-Credentials", "true");
-      res.statusCode = 204;
-      res.end();
-      return;
     }
+    res.statusCode = 204;
+    res.end();
+    return;
   }
 
-  // For health checks
-  if (req.url === "/api/health") {
+  // Health check
+  if (req.url === "/api" || req.url === "/api/health") {
     res.statusCode = 200;
     res.end("Proxy running");
     return;
   }
 
-  // Rewrite URL to remove /api prefix
+  // Remove /api prefix for target server
   req.url = req.url.replace(/^\/api/, "");
-  
-  // Handle the proxy
+
+  // Run proxy middleware
   return new Promise((resolve) => {
     proxy(req, res, (result) => {
       if (result instanceof Error) {
