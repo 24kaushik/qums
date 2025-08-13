@@ -68,7 +68,7 @@ module.exports = async (req, res) => {
   }
 
   // For health checks
-  if (req.url === "/api") {
+  if (req.url === "/api/health") {
     res.statusCode = 200;
     res.end("Proxy running");
     return;
