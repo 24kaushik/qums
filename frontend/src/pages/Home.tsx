@@ -12,6 +12,7 @@ import { Combobox } from "@/components/combo-box";
 import Loader from "@/components/loader";
 import { useReg } from "@/context/RegContext";
 import { Button } from "@/components/ui/button";
+import fetchFunction from "@/utils/fetchFunction";
 
 const Home = () => {
   const [heroProps, setHeroProps] = useState({});
@@ -20,32 +21,25 @@ const Home = () => {
 
   // Check if user is logged in.
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_HOST}/api/Account/GetStudentDetail`,
-          {
-            credentials: "include",
-            method: "POST",
-          }
+    try {
+      const fetchData = async () => {
+        const { data, status } = await fetchFunction(
+          "/api/Account/GetStudentDetail",
+          "POST"
         );
-        if (res.status === 200) {
-          const data = await res.json();
-          if (data.state == "[]") {
-            throw new Error("Not authorized");
-          }
-          setIsLoggedIn(true);
-          const state = JSON.parse(data.state)[0];
-          setHeroProps(state);
-          setRegId(state.RegID);
-        } else {
-          throw new Error("Not authorized");
+        if (status !== 200 || !data || data.state === "[]") {
+          throw new Error("Failed to fetch student details.");
         }
-      } catch (error) {
-        alert("You are not logged in. Please login to continue.");
-        window.location.href = "/";
-      }
-    })();
+        const state = JSON.parse(data.state)[0];
+        setHeroProps(state);
+        setRegId(state.RegID);
+        setIsLoggedIn(true);
+      };
+      fetchData();
+    } catch (error) {
+      alert("You are not logged in. Please login to continue.");
+      window.location.href = "/";
+    }
   }, []);
 
   return (
@@ -114,7 +108,7 @@ const Hero = ({ data }: { data: any }) => {
         <div className="text-center text-gray-600">
           <span>Semester: {data.YearSem}</span>
           &nbsp;&nbsp; &#8226; &nbsp;&nbsp;
-          <span>Section: {data.Section.replace("SECTION - ", "")}</span>
+          <span>Section: {data.Section?.toUpperCase()?.replace("SECTION", "").replace("-", "").trim()}</span>
           &nbsp;&nbsp; &#8226; &nbsp;&nbsp;
           <span>Set: {data.SetAssign}</span>
         </div>
@@ -138,22 +132,16 @@ const BasicInfo = () => {
   });
 
   useEffect(() => {
-    (async () => {
-      try {
-        const formdata = new FormData();
-        formdata.append("RegID", `${regId}`);
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_HOST
-          }/api/Web_StudentAcademic/GetStudentTileData`,
-          {
-            credentials: "include",
-            method: "POST",
-            body: formdata,
-          }
+    try {
+      const fetchBasicInfo = async () => {
+        const formData = new FormData();
+        formData.append("RegID", `${regId}`);
+        const { data, status } = await fetchFunction(
+          "/api/Web_StudentAcademic/GetStudentTileData",
+          "POST",
+          formData
         );
-        const data = await response.json();
-        if (data.state != "[]") {
+        if (status === 200 && data.state !== "[]") {
           const state = JSON.parse(data.state)[0];
           setBasicData({
             attendance: state.AttendPer,
@@ -162,10 +150,12 @@ const BasicInfo = () => {
             paid: state.CreditAmount,
           });
         }
-      } catch (error) {
-        console.error(error);
-      }
-    })();
+      };
+
+      fetchBasicInfo();
+    } catch (error) {
+      console.error(error);
+    }
   }, []);
 
   return (
@@ -311,25 +301,28 @@ const MonthlyClassInfo = () => {
 
   useEffect(() => {
     if (month) {
-      const formdata = new FormData();
-      formdata.append("RegID", `${regId}`);
-      formdata.append("Month", month);
-      fetch(
-        `${import.meta.env.VITE_HOST}/api/Web_StudentAcademic/GetMonthRegister`,
-        {
-          method: "post",
-          credentials: "include",
-          body: formdata,
-        }
-      )
-        .then((res) => (res.status === 200 ? res.json() : undefined))
-        .then((data) => {
-          if (data) {
-            const state = JSON.parse(data.state);
-            setAttendanceData(state);
-            setCol(data.col?.split(","));
+      try {
+        const fetchMonthlyAttendance = async () => {
+          const formData = new FormData();
+          formData.append("RegID", `${regId}`);
+          formData.append("Month", month);
+
+          const { data, status } = await fetchFunction(
+            "/api/Web_StudentAcademic/GetMonthRegister",
+            "POST",
+            formData
+          );
+
+          if (status === 200 && data.state !== "[]") {
+            const parsedData = JSON.parse(data.state);
+            setAttendanceData(parsedData);
+            setCol(data.col?.split(",") || []);
           }
-        });
+        };
+        fetchMonthlyAttendance();
+      } catch (error) {
+        console.error(error);
+      }
     }
   }, [month]);
 
@@ -360,7 +353,7 @@ const MonthlyClassInfo = () => {
           </TableHeader>
           <TableBody>
             {attendanceData.map((row, i) => (
-              <TableRow key={i} className="hover:">
+              <TableRow key={i} className="hover:bg-gray-100">
                 {col.map((e) => (
                   <TableCell
                     key={e}
@@ -397,29 +390,33 @@ const SemWiseAtt = ({ data }: { data: any }) => {
       }
     }
   }, [data]);
+  // Did all that shit to access previous sems. Worked for a while then they deleted all previous sem data. All that effort in drain ;-;
 
   useEffect(() => {
     if (sem) {
-      const formdata = new FormData();
-      formdata.append("RegID", `${regId}`);
-      formdata.append("YearSem", sem);
-      fetch(
-        `${
-          import.meta.env.VITE_HOST
-        }/api/Web_StudentAcademic/GetYearSemWiseAttendance`,
-        {
-          method: "post",
-          credentials: "include",
-          body: formdata,
-        }
-      )
-        .then((res) => (res.status === 200 ? res.json() : undefined))
-        .then((data) => {
-          if (data) {
+      try {
+        const fetchSemData = async () => {
+          const formData = new FormData();
+          formData.append("RegID", `${regId}`);
+          formData.append("YearSem", sem);
+
+          const { data, status } = await fetchFunction(
+            "/api/Web_StudentAcademic/GetYearSemWiseAttendance",
+            "POST",
+            formData
+          );
+
+          if (status === 200 && data.state !== "[]") {
             const attData = JSON.parse(data.data);
+            // Stick to a convention bruh. Who developed this fuckass ERP? Cyborg my ass.
+            // Sending the data sometimes in "state" sometimes in "data", sometimes some randomass key.
             setSemData(attData);
           }
-        });
+        };
+        fetchSemData();
+      } catch (error) {
+        console.error(error);
+      }
     }
   }, [sem]);
 
@@ -462,7 +459,9 @@ const SemWiseAtt = ({ data }: { data: any }) => {
             {semData.map((row, i) => (
               <TableRow
                 key={i}
-                className={`${row.Percentage < 75 ? "bg-red-300" : ""} text-xs md:text-sm`}
+                className={`${
+                  row.Percentage < 75 ? "bg-red-300" : ""
+                } text-xs md:text-sm`}
               >
                 <TableCell className="font-semibold border-r border-b">
                   {row.SubjectCode}
@@ -490,33 +489,25 @@ const ExamResult = () => {
   const { regId } = useReg();
 
   useEffect(() => {
-    const formdata = new FormData();
-    formdata.append("RegID", `${regId}`);
-    fetch(
-      `${
-        import.meta.env.VITE_HOST
-      }/api/Web_StudentAcademic/GetStudentExamSummary`,
-      {
-        method: "post",
-        credentials: "include",
-        body: formdata,
-      }
-    )
-      .then((res) => (res.status === 200 ? res.json() : undefined))
-      .then((data) => {
-        if (data) {
+    try {
+      const fetchExamResult = async () => {
+        const formData = new FormData();
+        formData.append("RegId", `${regId}`);
+
+        const { data, status } = await fetchFunction(
+          "/api/Web_StudentAcademic/GetStudentExamSummary",
+          "POST",
+          formData
+        );
+        if (status === 200 && data.ExamSummary !== "[]") {
           const result = JSON.parse(data.ExamSummary);
           setExamResult(result);
-          const t = new FormData();
-          t.append("yearSem", result[0].YearSem);
-          t.append("Regid", `${regId}`);
-          fetch(`${import.meta.env.VITE_HOST}/api/Web_StudentAcademic/FillMarksheet`, {
-            method: "post",
-            credentials: "include",
-            body: t,
-          }).then(res => res.json()).then(data=> {console.log(data)})
         }
-      });
+      };
+      fetchExamResult();
+    } catch (error) {
+      console.error(error);
+    }
   }, []);
 
   return (
@@ -568,17 +559,22 @@ const Circulars = () => {
   const [circulars, setCirculars] = useState<object[]>([]);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_HOST}/api/Web_Teaching/GetCircularDetails`, {
-      credentials: "include",
-      method: "POST",
-    })
-      .then((res) => (res.status === 200 ? res.json() : undefined))
-      .then((data) => {
-        if (data) {
+    try {
+      const fetchCirculars = async () => {
+        const { data, status } = await fetchFunction(
+          "/api/Web_Teaching/GetCircularDetails",
+          "POST"
+        );
+        if (status === 200 && data.state !== "[]") {
           const state = JSON.parse(data.state);
-          setCirculars(state.slice(0, 5)); // WHY ARE THEY RETURNING ALL THE CIRCULARS?? Theres like a thousand fucking circulars in the response. Such a waste of bandwidth and processing power.
+          setCirculars(state.slice(0, 5)); // Limit to 5 circulars
+          // WHY ARE THEY RETURNING ALL THE CIRCULARS?? Theres like a thousand fucking circulars in the response. Such a waste of bandwidth and processing power. idiots.
         }
-      });
+      };
+      fetchCirculars();
+    } catch (error) {
+      console.error(error);
+    }
   }, []);
 
   //TODO: Add Hyperlinks to circulars and take them to pdf view page.
@@ -624,6 +620,7 @@ const Circulars = () => {
 };
 
 const Notices = () => {
+  // TODO: Gotta make this dynamic.
   return (
     <div className="text-center m-3 md:ml-2 md:mr-3 w-[calc(100vw-1.5rem)] shadow-md bg-white border-t-4 border-sky-300 md:w-[calc(50%-1.25rem)] ">
       <h4 className="text-2xl font-josefins py-2 font-semibold">

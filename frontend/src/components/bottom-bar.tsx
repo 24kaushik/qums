@@ -70,7 +70,7 @@ const BottomBar = () => {
         className="absolute top-1/2 h-14 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9] transition-all rounded-full bg-white shadow drop-shadow-md flex items-center justify-between opacity-0 duration-200 w-0 overflow-hidden "
       >
         <div className="flex mx-7 space-x-5 -mb-1">
-          <Link to="/">
+          <Link to="/home">
             <div className="flex flex-col items-center justify-center">
               <FaHouse className="text-2xl" />
               <p className="text-sm">Home</p>
